@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pokemon Login & Search</title>
+  <style>
+    /* Basic reset and centering */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f7f7f7;
+      font-family: Arial, sans-serif;
+    }
+
+    /* Container for forms */
+    #login-container, #search-container {
+      background: #fff;
+      padding: 20px 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 300px;
+    }
+
+    /* Fade-out animation */
+    .fade-out {
+      animation: fadeOut 0.5s forwards;
+    }
+    @keyframes fadeOut {
+      to { opacity: 0; transform: scale(0.95); }
+    }
+
+    /* Common input and button styles */
+    input[type="email"], input[type="password"], input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+
+    /* Result area styling */
+    #pokemon-result {
+      margin-top: 15px;
+    }
+    #pokemon-result img {
+      max-width: 150px;
+      display: block;
+      margin: 10px auto;
+    }
+    #pokemon-result p {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- Login form block -->
+  <div id="login-container">
+    <h2>Login</h2>
+    <form id="login-form">
+      <!-- Email input -->
+      <label for="email">Email:</label>
+      <input id="email" type="email" required>
+      <!-- Password input -->
+      <label for="password">Password:</label>
+      <input id="password" type="password" required>
+      <!-- Submit button -->
+      <button type="submit">Login</button>
+    </form>
+  </div>
+
+  <!-- Pokemon search block, hidden until login is done -->
+  <div id="search-container" style="display:none;">
+    <h2>Search Pokémon</h2>
+    <!-- Search input -->
+    <input id="pokemon-name" type="text" placeholder="Enter Pokémon name">
+    <button id="search-button">Search</button>
+    <!-- Area to display Pokémon details -->
+    <div id="pokemon-result"></div>
+  </div>
+
+  <script>
+    // Wait for the login form to be submitted
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+      e.preventDefault(); // Prevent default page reload
+      // Simple check: both fields must be filled
+      const email = document.getElementById('email').value.trim();
+      const pass  = document.getElementById('password').value.trim();
+      if (email && pass) {
+        const loginBox = document.getElementById('login-container');
+        // Add fade-out animation
+        loginBox.classList.add('fade-out');
+        // After animation, hide login and show search
+        setTimeout(() => {
+          loginBox.style.display = 'none';
+          document.getElementById('search-container').style.display = 'block';
+        }, 500);
+      } else {
+        alert('Please enter both email and password.');
+      }
+    });
+
+    // When the Search button is clicked
+    document.getElementById('search-button').addEventListener('click', function() {
+      const nameInput = document.getElementById('pokemon-name').value.trim().toLowerCase();
+      const resultDiv = document.getElementById('pokemon-result');
+      // Clear previous result
+      resultDiv.innerHTML = '';
+      if (!nameInput) {
+        alert('Please enter a Pokémon name.');
+        return;
+      }
+      // Fetch data from PokéAPI
+      fetch(`https://pokeapi.co/api/v2/pokemon/${nameInput}`)
+        .then(response => {
+          if (!response.ok) throw new Error('Not found');
+          return response.json();
+        })
+        .then(data => {
+          // Display name in uppercase
+          const nameEl = document.createElement('p');
+          nameEl.textContent = data.name.toUpperCase();
+          // Display front image
+          const imgEl = document.createElement('img');
+          imgEl.src = data.sprites.front_default;
+          // Display types
+          const typesEl = document.createElement('p');
+          typesEl.textContent = 'Types: ' + data.types.map(t => t.type.name).join(', ');
+          // Display weight
+          const weightEl = document.createElement('p');
+          weightEl.textContent = 'Weight: ' + data.weight;
+          // Display heigh
+          const heightEl = document.createElement('p');
+          heightEl.textContent = 'height: ' + data.height;
+          // Append all to result div
+          resultDiv.append(nameEl, imgEl, typesEl, weightEl, heightEl);
+        })
+        .catch(() => {
+          resultDiv.textContent = 'Pokémon not found. Please try another name.';
+        });
+    });
+  </script>
+</body>
+</html>

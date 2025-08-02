@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- <script src="https://cdn.tailwindcss.com"></script> -->
+<head>
+  <meta charset="UTF-8">
+  <title>Login Form</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f7f7f7;
+      font-family: Arial, sans-serif;
+    }
+
+    #login-container {
+      background: #fff;
+      padding: 20px 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 300px;
+    }
+
+    input[type="email"], input[type="password"] {
+      width: 100%;
+      padding: 8px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <div id="login-container">
+    <h2>Login</h2>
+    <form id="login-form">
+      <label for="email">Email:</label>
+      <input id="email" type="email" name="email" required>
+      <label for="password">Password:</label>
+      <input id="password" type="password" name="password" required>
+      <button type="submit">Login</button>
+    </form>
+  </div>
+
+<script>
+  
+  document.getElementById('login-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('password', password);
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/register', { 
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (result.message) {
+        alert(result.message);  // Respuesta exitosa
+      } else if (result.error) {
+        alert(result.error);    // Error de validación del backend
+      } else {
+        alert("Respuesta inesperada del servidor"); // Por si acaso
+      }
+
+    } catch (error) {
+      alert('Error al conectar con el servidor');
+      console.error('Fetch error:', error);
+    }
+  });
+</script>
+</body>
+</html>

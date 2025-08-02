@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Login con Google Authenticator (TOTP)</title>
+
+  <!-- Biblioteca TOTP (otplib) y QR code -->
+  <script src="https://cdn.jsdelivr.net/npm/otplib@12.0.1/otplib-browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      height: 100vh; background: #f7f7f7;
+      font-family: Arial, sans-serif;
+    }
+    #login-container {
+      background: #fff; padding: 20px 30px;
+      border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      width: 320px;
+    }
+    label { display: block; margin-top: 10px; }
+    input { width: 100%; padding: 8px; margin-top: 4px;
+      border: 1px solid #ccc; border-radius: 4px; }
+    button {
+      width: 100%; padding: 10px; margin-top: 15px;
+      background: #4CAF50; color: #fff; border: none;
+      border-radius: 4px; cursor: pointer;
+    }
+    button:hover { background: #45a049; }
+    #qr-container {
+      text-align: center; margin-top: 15px;
+    }
+    #qr-container canvas { margin: auto; }
+  </style>
+</head>
+<body>
+
+  <div id="login-container">
+    <h2>Autenticación con TOTP</h2>
+
+    <!-- Formulario de login + MFA -->
+    <form id="login-form">
+      <label for="email">Email</label>
+      <input id="email" type="email" required>
+
+      <label for="password">Password</label>
+      <input id="password" type="password" required>
+
+      <!-- Aquí inyectaremos el QR -->
+      <div id="qr-container">
+        <p>Escanea este QR con Google Authenticator</p>
+        <div id="qrcode"></div>
+      </div>
+
+      <label for="token">Código de Authenticator</label>
+      <input id="token" type="text" maxlength="6" required>
+
+      <button type="submit">Login</button>
+    </form>
+  </div>
+
+  <script>
+    (function() {
+      const STORAGE_KEY = 'totpSecret';
+      let secret = localStorage.getItem(STORAGE_KEY);
+
+      // Si no hay secreto en localStorage, se genera uno nuevo
+      if (!secret) {
+        secret = otplib.authenticator.generateSecret();
+        localStorage.setItem(STORAGE_KEY, secret);
+      }
+
+      // Construir URL otpauth:// para el QR
+      const userEmail = 'usuario@ejemplo.com';
+      const issuer   = 'MiApp';
+      const otpauth  = otplib.authenticator.keyuri(userEmail, issuer, secret);
+
+      // Pintar el QR
+      new QRCode(document.getElementById('qrcode'), {
+        text: otpauth,
+        width: 180,
+        height: 180
+      });
+
+      // Handler de login + verificación TOTP
+      document.getElementById('login-form')
+        .addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // Campos básicos
+        const email = document.getElementById('email').value.trim();
+        const pass  = document.getElementById('password').value.trim();
+        const token = document.getElementById('token').value.trim();
+
+        if (!email || !pass) {
+          alert('Ingrese email y password.');
+          return;
+        }
+
+        // Verificar el código TOTP
+        const isValid = otplib.authenticator.check(token, secret);
+        if (!isValid) {
+          alert('Código inválido. Intente de nuevo.');
+          return;
+        }
+
+        // Aquí iría tu lógica real de login
+        alert('¡Autenticación exitosa con Google Authenticator!');
+      });
+    })();
+  </script>
+</body>
+</html>
